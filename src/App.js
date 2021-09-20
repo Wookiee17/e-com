@@ -1,48 +1,76 @@
-import logo from './logo.svg';
-import { useEffect, useState } from 'react'
-import './App.css';
-import Header from './Header'
-import Home from './Home'
-import Cart from './Cart'
+import React, { useEffect } from 'react';
+import './App.scss';
+import Header from './components/Header/Header';
 import {
   BrowserRouter as Router,
   Switch,
-  Route,
-  Link
+  Route
 } from "react-router-dom";
-import { db } from './firebase'
+import Home from './components/Home/Home';
+import Checkout from './components/Checkout/Checkout';
+import Login from './components/Login/Login';
+import {auth} from './components/Login/firebase';
+import { useStateValue } from './StateProvider';
+import Payment from './components/Payment/Payment';
+import {loadStripe} from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import Orders from './components/Orders/Orders';
 
-function App() { 
+const promise = loadStripe(
+  "pk_test_51HZuu8L2Eb4HEaVe78h9UUQf1DIYLK6AxtrpG9yj9gFcIrMf6X1tHG40fkmBc5dgeiVl8tLqDE5MhbuiHcITbkxm00sYEdBj80"
+)
 
-  const [ cartItems, setCartItems ] = useState([]);
+function App() {
+
+  const [{}, dispatch] = useStateValue();
 
   useEffect(() => {
-    db.collection('cart-items').onSnapshot((snapshot)=>{
-      let tempCartItems = []
-      snapshot.docs.map((doc)=>{
-          tempCartItems.push({
-              id: doc.id,
-              cartItem: doc.data()
-          })
-      })
-      setCartItems(tempCartItems)
+    auth.onAuthStateChanged(authUser => {
+      console.log("The user is >>> ", authUser);
+
+      if (authUser) {
+        // the user jsut logged in
+        dispatch({
+          type: "SET_USER",
+          user: authUser
+        })
+      } else {
+        // the user is logged out 
+        dispatch({
+          type: "SET_USER",
+          user: null
+        })
+        console.log(authUser)
+      }
     })
-  }, [])
-
-
+  },[])
   return (
     <Router>
       <div className="App">
-        <Header 
-          cartItems={cartItems} />
-        <Switch>
-          <Route path="/cart">
-            <Cart cartItems={cartItems} />
-          </Route>
-          <Route path="/">
-            <Home />
-          </Route>
-        </Switch>
+          
+            <Switch>
+              <Route path="/login">
+                <Login/>
+              </Route>
+              <Route path='/checkout'>
+                <Header/>
+                <Checkout/>
+              </Route>
+              <Route path='/payment'>
+                <Header/>
+                <Elements stripe={promise}> 
+                  <Payment/>
+                </Elements>
+              </Route>
+              <Route path='/orders'>
+                <Header/>
+                <Orders/>
+              </Route>
+              <Route path='/'>
+                <Header/>
+                <Home/>
+              </Route>
+            </Switch>
       </div>
     </Router>
   );
