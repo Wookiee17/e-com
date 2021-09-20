@@ -1,7 +1,3 @@
-# Amazon clone - An E-commerce website
-#### Amazon Clone Live Link: https://nifty-visvesvaraya-e8d8ba.netlify.app/
-
-#### Firebase Deploy: https://ema-jhon-22188.web.app/
 
 ## Overview: 
 * Created add to cart, count selected cart item
